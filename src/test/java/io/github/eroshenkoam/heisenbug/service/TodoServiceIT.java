@@ -6,26 +6,15 @@ import io.github.eroshenkoam.heisenbug.domain.User;
 import io.github.eroshenkoam.heisenbug.repository.TodoRepository;
 import io.github.eroshenkoam.heisenbug.repository.UserRepository;
 import io.github.eroshenkoam.heisenbug.service.dto.TodoDTO;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.auditing.AuditingHandler;
-import org.springframework.data.auditing.DateTimeProvider;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.transaction.annotation.Transactional;
-import tech.jhipster.security.RandomUtil;
-
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Optional;
 
 import static io.github.eroshenkoam.heisenbug.RandomUtils.randomTodo;
 import static io.github.eroshenkoam.heisenbug.RandomUtils.randomUser;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 /**
  * Integration tests for {@link UserService}.
@@ -34,7 +23,9 @@ import static org.mockito.Mockito.when;
 @Transactional
 class TodoServiceIT {
 
-  @Autowired
+    private static final String USERNAME = "heisenbug";
+
+    @Autowired
     private UserRepository userRepository;
 
     @Autowired
@@ -46,15 +37,25 @@ class TodoServiceIT {
 
     @Test
     @Transactional
+    @WithMockUser(username = USERNAME)
     void assertThatUserMustExistToResetPassword() {
-        final User user = randomUser();
-        userRepository.saveAndFlush(user);
+        final User firstUser = randomUser((u) -> u.setLogin(USERNAME));
+        userRepository.saveAndFlush(firstUser);
+        final User secondUser = randomUser();
+        userRepository.saveAndFlush(secondUser);
 
-        final Todo todo = randomTodo(user);
-        todoRepository.saveAndFlush(todo);
+        final Todo firstTodo = randomTodo(firstUser);
+        todoRepository.saveAndFlush(firstTodo);
+        final Todo secondTodo = randomTodo(firstUser);
+        todoRepository.saveAndFlush(secondTodo);
+
+        final Todo unusedTodo = randomTodo(secondUser);
+        todoRepository.saveAndFlush(unusedTodo);
 
         List<TodoDTO> dtoList = todoService.findAllForCurrentUser();
-        assertThat(dtoList).hasSize(1);
+        assertThat(dtoList).hasSize(2)
+            .extracting(TodoDTO::getTitle)
+            .contains(firstTodo.getTitle(), secondTodo.getTitle());
     }
 
 }

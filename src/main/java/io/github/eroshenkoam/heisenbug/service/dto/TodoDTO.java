@@ -15,16 +15,18 @@ public class TodoDTO {
         return id;
     }
 
-    public void setId(Long id) {
+    public TodoDTO setId(Long id) {
         this.id = id;
+        return this;
     }
 
     public String getTitle() {
         return title;
     }
 
-    public void setTitle(String title) {
+    public TodoDTO setTitle(String title) {
         this.title = title;
+        return this;
     }
 
 }
