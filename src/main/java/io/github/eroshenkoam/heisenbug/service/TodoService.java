@@ -61,6 +61,17 @@ public class TodoService {
             .collect(Collectors.toList());
     }
 
+    public TodoDTO create(TodoDTO dto) {
+        User user = getUserWithAuthorities()
+            .orElseThrow(() -> new NullPointerException("Can't find authorized user"));
+
+        final Todo todo = todoMapper.dtoToTodo(dto);
+        todo.setUser(user);
+        final Todo created = todoRepository.save(todo);
+
+        return todoMapper.todoToDto(created);
+    }
+
     @Transactional(readOnly = true)
     public Optional<User> getUserWithAuthorities() {
         return SecurityUtils.getCurrentUserLogin()

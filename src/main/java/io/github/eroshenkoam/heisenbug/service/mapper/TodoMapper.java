@@ -34,4 +34,10 @@ public class TodoMapper {
         return dto;
     }
 
+    public Todo dtoToTodo(final TodoDTO dto) {
+        Todo todo = new Todo();
+        todo.setTitle(dto.getTitle());
+        return todo;
+    }
+
 }
